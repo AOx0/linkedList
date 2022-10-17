@@ -207,7 +207,6 @@ struct FreValue {
   T value;
   size_t fre;
 
-  // << operator
   friend std::ostream & operator<<(std::ostream & os, const FreValue<T> & fre_value) {
     os << "{ " << fre_value.value << " : " << fre_value.fre << " }";
     return os;
@@ -259,6 +258,143 @@ public:
   {
     for (auto & value : list) {
       push_fre(value);
+    }
+  }
+};
+
+template<typename K, typename V>
+struct KeyValue {
+  K key;
+  V value;
+
+ friend std::ostream & operator<<(std::ostream & os, const KeyValue<K, V> & fre_value) {
+    os << "{ " << fre_value.key << " : " << fre_value.value << " }";
+    return os;
+  }
+};
+
+template<typename K, typename V>
+struct KeyValueList : ListBase<KeyValue<K, V>> {
+  using ListBase<KeyValue<K, V>>::push_bk;
+  using ListBase<KeyValue<K, V>>::for_each_node;
+
+  V * get(K key) {
+    Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
+      if (value->value.key == key) {
+        return true;
+      }
+      return false;
+    });
+
+    if (node == nullptr) {
+      return nullptr;
+    } else {
+      return &node->value.value;
+    }
+  }
+
+  bool insert_update(K key, V value) {
+    Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
+      if (value->value.key == key) {
+        return true;
+      }
+      return false;
+    });
+
+    if (node == nullptr) {
+      push_bk({key, value});
+      return true;
+    } else {
+      node->value.value = value;
+      return false;
+    }
+  }
+
+  bool update(K key, V value) {
+    Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
+      if (value->value.key == key) {
+        return true;
+      }
+      return false;
+    });
+
+    if (node == nullptr) {
+      return false;
+    } else {
+      node->value.value = value;
+      return true;
+    }
+  }
+
+  bool insert(K key, V value) {
+    Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
+      if (value->value.key == key) {
+        return true;
+      }
+      return false;
+    });
+
+    if (node == nullptr) {
+      push_bk({key, value});
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  KeyValueList() : ListBase<KeyValue<K, V>>() {}
+
+  KeyValueList(std::initializer_list<KeyValue<K, V>> list)
+    : ListBase<KeyValue<K, V>>()
+  {
+    for (auto & value : list) {
+      push_bk(value);
+    }
+  }
+};
+
+template<typename K, typename V>
+struct Cortina: KeyValueList<K, List<V>> {
+  using KeyValueList<K, List<V>>::insert_update;
+  using KeyValueList<K, List<V>>::insert;
+  using KeyValueList<K, List<V>>::update;
+  using KeyValueList<K, List<V>>::push_bk;
+  using KeyValueList<K, List<V>>::get;
+
+  void insert_append(K key, V value) {
+    List<V> * list = get(key);
+    if (list == nullptr) {
+      insert(key, {value});
+    } else {
+      list->push_back(value);
+    }
+  }
+
+  void insert(K key, V value) {
+    List<V> * list = get(key);
+    if (list == nullptr) {
+      insert(key, {value});
+    } else {
+      list->push_back(value);
+    }
+  }
+
+  void append(K key, V value) {
+    List<V> * list = get(key);
+    if (list == nullptr) {
+      insert(key, {value});
+    } else {
+      list->push_back(value);
+    }
+  }
+
+  Cortina() : KeyValueList<K, List<V>>() {}
+
+  Cortina(std::initializer_list<KeyValue<K, List<V>>> list)
+    : KeyValueList<K, List<V>>()
+  {
+    for (auto & value : list) {
+      insert(value.key, value.value);
     }
   }
 };

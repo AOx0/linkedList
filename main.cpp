@@ -76,10 +76,28 @@ void ej_indexado() {
   cout << '\n';
 }
 
+void ej_diccionario() {
+  KeyValueList<string, int> edades{ {.key = "Sofia", .value = 30}, {"Juan", 10}, {"Pepe", 5} };
+  cout << edades << endl;
+
+  cout << "La edad de Sofia es: " << *edades.get("Sofia") << endl;
+
+  edades.insert("Pedro", 43);
+  edades.insert_update("Pedro", 44);
+
+ cout << edades << endl;
+}
+
+void ej_cortina() {
+  Cortina<string, int> calificaciones { { .key = "Sofia", .value {10, 7}}, {"Juan", {9, 10, 8}} };
+  cout << calificaciones << endl;
+  calificaciones.append("Sofia", 8);
+  cout << calificaciones << endl;
+}
 
 int main() {
 
-  ej_indexado();
+  ej_cortina();
 
   /*
   List<tuple<string, int>> list { { "Pepe", 10 }, { "Sofia", 9 } };
