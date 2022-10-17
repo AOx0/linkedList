@@ -3,6 +3,8 @@
 //
 
 #include <iostream>
+#include <fstream>
+
 #include "library.hpp"
 
 using namespace std;
@@ -95,9 +97,89 @@ void ej_cortina() {
   cout << calificaciones << endl;
 }
 
+void ejercicio1() {
+  ListFre<string> list_fre { "Hola", "Hola", "Hola", "Jaa", "Jaa", "Aaa", "Zola", "Zola", "Zola", "Bola" };
+  cout << list_fre << '\n';
+}
+
+void ejercicio2() {
+  Cortina<string, KeyValue<string, int>> comidas {
+    {
+      .key = "Mexicana",
+      .value = {
+          { .key = "Tacos", .value = 0 },
+          { .key = "Chilaquiles", .value = 10 }
+      }
+    },
+    {
+      "Italiana",
+        {
+          { "Pizza", 4 },
+          { "Ravioli", 2 },
+          { "Spaghetti", 10 }
+      }
+    }
+  };
+
+  comidas.for_each_node([](auto * node) {
+    string mas_gustado;
+    string menos_gustado;
+    int smallest = 5000;
+    int greatest = -5000;
+    node->value.value.for_each([&](auto comida) {
+      if (comida.value > greatest) {
+        greatest = comida.value;
+        mas_gustado = comida.key;
+      }
+      if (comida.value < smallest) {
+        smallest = comida.value;
+        menos_gustado = comida.key;
+      }
+      return false;
+    });
+
+    cout << "La comida más gustada de " << node->value.key << " es " << mas_gustado << " con " << greatest << " votos" << endl;
+    cout << "La comida menos gustada de " << node->value.key << " es " << menos_gustado << " con " << smallest << " votos" << endl;
+
+    return false;
+  });
+
+  cout << comidas << endl;
+}
+
+void ejercicio3() {
+  List<string> contenidos;
+
+  ifstream archivo1("/Users/alejandro/CLionProjects/untitled44/archivo1.txt", ios::in );
+  ifstream archivo2("/Users/alejandro/CLionProjects/untitled44/archivo2.txt", ios::in );
+  ifstream archivo3("/Users/alejandro/CLionProjects/untitled44/archivo3.txt", ios::in );
+  ofstream archivo4("/Users/alejandro/CLionProjects/untitled44/archivo4.txt", ios::out | ios::trunc );
+
+  string data1, data2, data3;
+  bool n1, n2, n3;
+  while (
+      (n1 = !getline(archivo1, data1, '\n').eof()) |
+      (n2 = !getline(archivo2, data2, '\n').eof()) |
+      (n3 = !getline(archivo3, data3, '\n').eof())
+  ) {
+    if (n1) contenidos.push_back(data1);
+    if (n2) contenidos.push_back(data2);
+    if (n3) contenidos.push_back(data3);
+  }
+
+  cout << contenidos << endl;
+
+  contenidos.for_each([&](const string& value){
+    archivo4 << value << '\n';
+    return false;
+  });
+}
+
 int main() {
 
-  ej_cortina();
+  ejercicio1();
+  ejercicio2();
+  ejercicio3();
 
   /*
   List<tuple<string, int>> list { { "Pepe", 10 }, { "Sofia", 9 } };
