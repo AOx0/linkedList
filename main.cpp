@@ -32,7 +32,7 @@ void ej_lista_con_frecuencia() {
   cout << list_fre << '\n';
 
   // También podemos crear una lista con frecuencia a partir de una lista de valores de la forma {valor, frecuencia}
-  ListFre<string> list_fre2 { { .value = "Hola", .fre = 3 }, { "Jaa", 2 }, { "Aaa", 1 } };
+  ListFre<string> list_fre2 { FreValue<string>{ "Hola", 3 }, { "Jaa", 2 }, { "Aaa", 1 } };
   cout << list_fre2 << '\n';
 
   // Al final una lista ordenada no es más que la composición de List<FreValue<T>> con un método especial
@@ -150,10 +150,10 @@ void ejercicio2() {
 void ejercicio3() {
   List<string> contenidos;
 
-  ifstream archivo1("/Users/alejandro/CLionProjects/untitled44/archivo1.txt", ios::in );
-  ifstream archivo2("/Users/alejandro/CLionProjects/untitled44/archivo2.txt", ios::in );
-  ifstream archivo3("/Users/alejandro/CLionProjects/untitled44/archivo3.txt", ios::in );
-  ofstream archivo4("/Users/alejandro/CLionProjects/untitled44/archivo4.txt", ios::out | ios::trunc );
+  ifstream archivo1("archivo1.txt", ios::in );
+  ifstream archivo2("archivo2.txt", ios::in );
+  ifstream archivo3("archivo3.txt", ios::in );
+  ofstream archivo4("archivo4.txt", ios::out | ios::trunc );
 
   string data1, data2, data3;
   bool n1, n2, n3;
@@ -189,4 +189,5 @@ int main() {
 
   cout << get<0>(pepe->value) << " : " << get<1>(pepe->value) << '\n';
    */
+  return 0;
 }

@@ -2,6 +2,7 @@
 #define LIBRARY_HPP
 
 #include <iostream>
+#include <functional>
 
 template<typename T>
 struct Node {
@@ -60,7 +61,7 @@ public:
   // Function that receives a lambda that specifies a value to use for comparison
   template <typename V>
   void push_ord(T value, std::function<V(T)> get_value_from_node) {
-    Node<T> * node = new Node(value);
+    Node<T> * node = new Node<T>(value);
     if (head == nullptr) {
       head = node;
       tail = node;
@@ -157,7 +158,7 @@ protected:
   }
 
   void push_ft(T value) {
-    Node<T> * node = new Node(value);
+    Node<T> * node = new Node<T>(value);
     if (head == nullptr) {
       head = node;
       tail = node;
@@ -169,7 +170,7 @@ protected:
   }
 
   void push_bk(T value) {
-    Node<T> * node = new Node(value);
+    Node<T> * node = new Node<T>(value);
     if (head == nullptr) {
       head = node;
       tail = node;
