@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <functional>
+#include <utility>
 
 template<typename T>
 struct Node {
@@ -11,9 +12,9 @@ struct Node {
   Node * prev;
 
   explicit Node(T value)
-    : value(value)
-    , next(nullptr)
-    , prev(nullptr)
+      : value(std::move(value))
+      , next(nullptr)
+      , prev(nullptr)
   {}
 };
 
@@ -58,10 +59,14 @@ public:
     return nullptr;
   }
 
+  size_t len() {
+    return size;
+  }
+
   // Function that receives a lambda that specifies a value to use for comparison
   template <typename V>
   void push_ord(T value, std::function<V(T)> get_value_from_node) {
-    Node<T> * node = new Node<T>(value);
+    auto * node = new Node<T>(value);
     if (head == nullptr) {
       head = node;
       tail = node;
@@ -84,18 +89,17 @@ public:
     size++;
   }
 
-
   ListBase()
-    : head(nullptr)
-    , tail(nullptr)
-    , size(0)
+      : head(nullptr)
+      , tail(nullptr)
+      , size(0)
   {}
 
   // Construct list from initializer list
   ListBase(std::initializer_list<T> list)
-    : head(nullptr)
-    , tail(nullptr)
-    , size(0)
+      : head(nullptr)
+      , tail(nullptr)
+      , size(0)
   {
     for (auto & value : list) {
       push_bk(value);
@@ -104,23 +108,23 @@ public:
 
   // Copy constructor
   ListBase(const ListBase<T> & other)
-    : head(nullptr)
-    , tail(nullptr)
-    , size(0)
+      : head(nullptr)
+      , tail(nullptr)
+      , size(0)
   {
     Node<T> * current = other.head;
-      while (current != nullptr) {
-        auto next_current = current->next;
-        push_bk(current->value);
-        current = next_current;
-      }
+    while (current != nullptr) {
+      auto next_current = current->next;
+      push_bk(current->value);
+      current = next_current;
+    }
   }
 
   // Move constructor
   ListBase(ListBase<T> && other) noexcept
-    : head(other.head)
-    , tail(other.tail)
-    , size(other.size)
+      : head(other.head)
+      , tail(other.tail)
+      , size(other.size)
   {
     other.head = nullptr;
     other.tail = nullptr;
@@ -139,6 +143,24 @@ public:
   }
 
 protected:
+
+  void delete_node(Node<T> * node) {
+    if (node == head) {
+      head = node->next;
+    }
+    if (node == tail) {
+      tail = node->prev;
+    }
+    if (node->prev != nullptr) {
+      node->prev->next = node->next;
+    }
+    if (node->next != nullptr) {
+      node->next->prev = node->prev;
+    }
+    delete node;
+    size--;
+  }
+
   void push_before(Node<T> * node, Node<T> * at) {
     if (at->prev != nullptr) {
       at->prev->next = node;
@@ -158,7 +180,7 @@ protected:
   }
 
   void push_ft(T value) {
-    Node<T> * node = new Node<T>(value);
+    auto * node = new Node<T>(value);
     if (head == nullptr) {
       head = node;
       tail = node;
@@ -170,7 +192,7 @@ protected:
   }
 
   void push_bk(T value) {
-    Node<T> * node = new Node<T>(value);
+    auto * node = new Node<T>(value);
     if (head == nullptr) {
       head = node;
       tail = node;
@@ -194,11 +216,19 @@ struct List: ListBase<T> {
     ListBase<T>::push_bk(value);
   }
 
+  void pop_back() {
+    ListBase<T>::delete_node(ListBase<T>::tail);
+  }
+
+  void pop_front() {
+    ListBase<T>::delete_node(ListBase<T>::tail);
+  }
+
   List() : ListBase<T>() {}
 
   // Construct list from initializer list
   List(std::initializer_list<T> list)
-    : ListBase<T>(list)
+      : ListBase<T>(list)
   {}
 };
 
@@ -223,10 +253,8 @@ protected:
   using ListBase<FreValue<T>>::tail;
   using ListBase<FreValue<T>>::size;
 
-
-
 public:
-  void push_fre(T value) {
+  void push(T value) {
     if (head == nullptr) {
       push_ft({value, 1});
       return;
@@ -243,10 +271,24 @@ public:
     }
   };
 
+  void pop(T value) {
+    Node<FreValue<T>> * node = this->for_each([&value](FreValue<T> fre_value) {
+      return fre_value.value == value;
+    });
+
+    if (node != nullptr) {
+      if (node->value.fre > 1) {
+        node->value.fre--;
+      } else {
+        this->delete_node(node);
+      }
+    }
+  }
+
   ListFre() : ListBase<FreValue<T>>() {}
 
   ListFre(std::initializer_list<FreValue<T>> list)
-    : ListBase<FreValue<T>>()
+      : ListBase<FreValue<T>>()
   {
     for (auto & value : list) {
       push_bk(value);
@@ -254,10 +296,10 @@ public:
   }
 
   ListFre(std::initializer_list<T> list)
-    : ListBase<FreValue<T>>()
+      : ListBase<FreValue<T>>()
   {
     for (auto & value : list) {
-      push_fre(value);
+      push(value);
     }
   }
 };
@@ -267,7 +309,7 @@ struct KeyValue {
   K key;
   V value;
 
- friend std::ostream & operator<<(std::ostream & os, const KeyValue<K, V> & fre_value) {
+  friend std::ostream & operator<<(std::ostream & os, const KeyValue<K, V> & fre_value) {
     os << "{ " << fre_value.key << " : " << fre_value.value << " }";
     return os;
   }
@@ -275,84 +317,97 @@ struct KeyValue {
 
 template<typename K, typename V>
 struct KeyValueListBase : ListBase<KeyValue<K, V>> {
-    using ListBase<KeyValue<K, V>>::push_bk;
-    using ListBase<KeyValue<K, V>>::for_each_node;
+  using ListBase<KeyValue<K, V>>::push_bk;
+  using ListBase<KeyValue<K, V>>::for_each_node;
 
 protected:
-    V * g(K key) {
-      Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
-        if (value->value.key == key) {
-          return true;
-        }
-        return false;
-      });
+  bool pop_k(K key) {
+    Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * key_value) {
+      return key_value->value.key == key;
+    });
 
-      if (node == nullptr) {
-        return nullptr;
-      } else {
-        return &node->value.value;
-      }
+    if (node != nullptr) {
+      this->delete_node(node);
+      return true;
     }
 
-    bool i_u(K key, V value) {
-      Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
-        if (value->value.key == key) {
-          return true;
-        }
-        return false;
-      });
+    return false;
+  }
 
-      if (node == nullptr) {
-        push_bk({key, value});
-        return true;
-      } else {
-        node->value.value = value;
-        return false;
-      }
-    }
-
-    bool u(K key, V value) {
-      Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
-        if (value->value.key == key) {
-          return true;
-        }
-        return false;
-      });
-
-      if (node == nullptr) {
-        return false;
-      } else {
-        node->value.value = value;
+  V * g(K key) {
+    Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
+      if (value->value.key == key) {
         return true;
       }
+      return false;
+    });
+
+    if (node == nullptr) {
+      return nullptr;
+    } else {
+      return &node->value.value;
     }
+  }
 
-    bool i(K key, V value) {
-      Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
-        if (value->value.key == key) {
-          return true;
-        }
-        return false;
-      });
-
-      if (node == nullptr) {
-        push_bk({key, value});
+  bool i_u(K key, V value) {
+    Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
+      if (value->value.key == key) {
         return true;
-      } else {
-        return false;
       }
+      return false;
+    });
+
+    if (node == nullptr) {
+      push_bk({key, value});
+      return true;
+    } else {
+      node->value.value = value;
+      return false;
     }
+  }
 
-    KeyValueListBase() : ListBase<KeyValue<K, V>>() {}
-
-    KeyValueListBase(std::initializer_list<KeyValue<K, V>> list)
-        : ListBase<KeyValue<K, V>>()
-    {
-      for (auto & value : list) {
-        push_bk(value);
+  bool u(K key, V value) {
+    Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
+      if (value->value.key == key) {
+        return true;
       }
+      return false;
+    });
+
+    if (node == nullptr) {
+      return false;
+    } else {
+      node->value.value = value;
+      return true;
     }
-  };
+  }
+
+  bool i(K key, V value) {
+    Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
+      if (value->value.key == key) {
+        return true;
+      }
+      return false;
+    });
+
+    if (node == nullptr) {
+      push_bk({key, value});
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  KeyValueListBase() : ListBase<KeyValue<K, V>>() {}
+
+  KeyValueListBase(std::initializer_list<KeyValue<K, V>> list)
+      : ListBase<KeyValue<K, V>>()
+  {
+    for (auto & value : list) {
+      push_bk(value);
+    }
+  }
+};
 
 template<typename K, typename V>
 struct KeyValueList : KeyValueListBase<K, V> {
@@ -361,6 +416,10 @@ struct KeyValueList : KeyValueListBase<K, V> {
 
   V * get(K key) {
     return KeyValueListBase<K, V>::g(key);
+  }
+
+  bool delete_key(K key) {
+    return KeyValueListBase<K, V>::pop_k(key);
   }
 
   bool insert_update(K key, V value) {
@@ -378,7 +437,7 @@ struct KeyValueList : KeyValueListBase<K, V> {
   KeyValueList() : KeyValueListBase<K, V>() {}
 
   KeyValueList(std::initializer_list<KeyValue<K, V>> list)
-    : KeyValueListBase<K, V>(list)
+      : KeyValueListBase<K, V>(list)
   {}
 };
 
@@ -396,6 +455,10 @@ struct Cortina: KeyValueListBase<K, List<V>> {
     } else {
       list->push_back(value);
     }
+  }
+
+  bool delete_key(K key) {
+    return KeyValueListBase<K, List<V>>::pop_k(key);
   }
 
   void insert(K key, V value) {
@@ -419,12 +482,13 @@ struct Cortina: KeyValueListBase<K, List<V>> {
   Cortina() : KeyValueListBase<K, List<V>>() {}
 
   Cortina(std::initializer_list<KeyValue<K, List<V>>> list)
-    : KeyValueListBase<K, List<V>>()
+      : KeyValueListBase<K, List<V>>()
   {
     for (auto & value : list) {
       i(value.key, value.value);
     }
   }
 };
+
 
 #endif //LIBRARY_HPP
