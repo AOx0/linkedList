@@ -156,7 +156,6 @@ protected:
     at->next = node;
   }
 
-
   void push_ft(T value) {
     Node<T> * node = new Node(value);
     if (head == nullptr) {
@@ -274,127 +273,155 @@ struct KeyValue {
 };
 
 template<typename K, typename V>
-struct KeyValueList : ListBase<KeyValue<K, V>> {
+struct KeyValueListBase : ListBase<KeyValue<K, V>> {
+    using ListBase<KeyValue<K, V>>::push_bk;
+    using ListBase<KeyValue<K, V>>::for_each_node;
+
+protected:
+    V * g(K key) {
+      Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
+        if (value->value.key == key) {
+          return true;
+        }
+        return false;
+      });
+
+      if (node == nullptr) {
+        return nullptr;
+      } else {
+        return &node->value.value;
+      }
+    }
+
+    bool i_u(K key, V value) {
+      Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
+        if (value->value.key == key) {
+          return true;
+        }
+        return false;
+      });
+
+      if (node == nullptr) {
+        push_bk({key, value});
+        return true;
+      } else {
+        node->value.value = value;
+        return false;
+      }
+    }
+
+    bool u(K key, V value) {
+      Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
+        if (value->value.key == key) {
+          return true;
+        }
+        return false;
+      });
+
+      if (node == nullptr) {
+        return false;
+      } else {
+        node->value.value = value;
+        return true;
+      }
+    }
+
+    bool i(K key, V value) {
+      Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
+        if (value->value.key == key) {
+          return true;
+        }
+        return false;
+      });
+
+      if (node == nullptr) {
+        push_bk({key, value});
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    KeyValueListBase() : ListBase<KeyValue<K, V>>() {}
+
+    KeyValueListBase(std::initializer_list<KeyValue<K, V>> list)
+        : ListBase<KeyValue<K, V>>()
+    {
+      for (auto & value : list) {
+        push_bk(value);
+      }
+    }
+  };
+
+template<typename K, typename V>
+struct KeyValueList : KeyValueListBase<K, V> {
   using ListBase<KeyValue<K, V>>::push_bk;
   using ListBase<KeyValue<K, V>>::for_each_node;
 
   V * get(K key) {
-    Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
-      if (value->value.key == key) {
-        return true;
-      }
-      return false;
-    });
-
-    if (node == nullptr) {
-      return nullptr;
-    } else {
-      return &node->value.value;
-    }
+    return KeyValueListBase<K, V>::g(key);
   }
 
   bool insert_update(K key, V value) {
-    Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
-      if (value->value.key == key) {
-        return true;
-      }
-      return false;
-    });
-
-    if (node == nullptr) {
-      push_bk({key, value});
-      return true;
-    } else {
-      node->value.value = value;
-      return false;
-    }
+    return KeyValueListBase<K, V>::i_u(key, value);
   }
 
   bool update(K key, V value) {
-    Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
-      if (value->value.key == key) {
-        return true;
-      }
-      return false;
-    });
-
-    if (node == nullptr) {
-      return false;
-    } else {
-      node->value.value = value;
-      return true;
-    }
+    return KeyValueListBase<K, V>::u(key, value);
   }
 
   bool insert(K key, V value) {
-    Node<KeyValue<K, V>> * node = for_each_node([&](Node<KeyValue<K, V>> * value){
-      if (value->value.key == key) {
-        return true;
-      }
-      return false;
-    });
-
-    if (node == nullptr) {
-      push_bk({key, value});
-      return true;
-    } else {
-      return false;
-    }
+    return KeyValueListBase<K, V>::i(key, value);
   }
 
-  KeyValueList() : ListBase<KeyValue<K, V>>() {}
+  KeyValueList() : KeyValueListBase<K, V>() {}
 
   KeyValueList(std::initializer_list<KeyValue<K, V>> list)
-    : ListBase<KeyValue<K, V>>()
-  {
-    for (auto & value : list) {
-      push_bk(value);
-    }
-  }
+    : KeyValueListBase<K, V>(list)
+  {}
 };
 
 template<typename K, typename V>
-struct Cortina: KeyValueList<K, List<V>> {
-  using KeyValueList<K, List<V>>::insert_update;
-  using KeyValueList<K, List<V>>::insert;
-  using KeyValueList<K, List<V>>::update;
-  using KeyValueList<K, List<V>>::push_bk;
-  using KeyValueList<K, List<V>>::get;
+struct Cortina: KeyValueListBase<K, List<V>> {
+  using KeyValueListBase<K, List<V>>::g;
+  using KeyValueListBase<K, List<V>>::i_u;
+  using KeyValueListBase<K, List<V>>::u;
+  using KeyValueListBase<K, List<V>>::i;
 
   void insert_append(K key, V value) {
-    List<V> * list = get(key);
+    List<V> * list = g(key);
     if (list == nullptr) {
-      insert(key, {value});
+      i(key, {value});
     } else {
       list->push_back(value);
     }
   }
 
   void insert(K key, V value) {
-    List<V> * list = get(key);
+    List<V> * list = g(key);
     if (list == nullptr) {
-      insert(key, {value});
+      i(key, {value});
     } else {
       list->push_back(value);
     }
   }
 
   void append(K key, V value) {
-    List<V> * list = get(key);
+    List<V> * list = g(key);
     if (list == nullptr) {
-      insert(key, {value});
+      i(key, {value});
     } else {
       list->push_back(value);
     }
   }
 
-  Cortina() : KeyValueList<K, List<V>>() {}
+  Cortina() : KeyValueListBase<K, List<V>>() {}
 
   Cortina(std::initializer_list<KeyValue<K, List<V>>> list)
-    : KeyValueList<K, List<V>>()
+    : KeyValueListBase<K, List<V>>()
   {
     for (auto & value : list) {
-      insert(value.key, value.value);
+      i(value.key, value.value);
     }
   }
 };
