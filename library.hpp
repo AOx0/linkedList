@@ -5,6 +5,11 @@
 #include <functional>
 #include <utility>
 
+enum Ord {
+  Asc,
+  Des
+};
+
 template<typename T>
 struct Node {
   T value;
@@ -65,7 +70,7 @@ public:
 
   // Function that receives a lambda that specifies a value to use for comparison
   template <typename V>
-  void push_ord(T value, std::function<V(T)> get_value_from_node) {
+  void push_ord(T value, Ord ord, std::function<V(T)> get_value_from_node) {
     auto * node = new Node<T>(value);
     if (head == nullptr) {
       head = node;
@@ -73,7 +78,10 @@ public:
     } else {
       Node<T> * current = head;
       while (current != nullptr) {
-        if (get_value_from_node(current->value) > get_value_from_node(value)) {
+        if (
+            (Ord::Asc == ord && get_value_from_node(current->value) > get_value_from_node(value)) ||
+            (Ord::Des == ord && get_value_from_node(current->value) < get_value_from_node(value))
+            ) {
           push_before(node, current);
           if (current == head) {
             head = node;

@@ -48,7 +48,7 @@ void ej_indexado() {
   // En este ejemplo ordenaremos una lista de frecuencia en base con número de repeticiones
   List<Node<FreValue<string>> *> ordenada_por_repeticiones;
   list_fre.for_each_node([&ordenada_por_repeticiones](auto * fre_value) {
-    ordenada_por_repeticiones.push_ord<int>(fre_value, [](auto * fre_value) {
+    ordenada_por_repeticiones.push_ord<int>(fre_value, Ord::Asc, [](auto * fre_value) {
       return fre_value->value.fre;
     });
     return false;
@@ -64,7 +64,7 @@ void ej_indexado() {
   // También podemos ordenar una lista de frecuencia en base con los valores de la lista (los strings)
   List<Node<FreValue<string>> *> ordenada_por_valores;
   list_fre.for_each_node([&ordenada_por_valores](auto * fre_value) {
-    ordenada_por_valores.push_ord<string>(fre_value, [](auto * fre_value) {
+    ordenada_por_valores.push_ord<string>(fre_value, Ord::Asc, [](auto * fre_value) {
       return fre_value->value.value;
     });
     return false;
@@ -181,13 +181,5 @@ int main() {
   ejercicio2();
   ejercicio3();
 
-  /*
-  List<tuple<string, int>> list { { "Pepe", 10 }, { "Sofia", 9 } };
-  auto pepe = list.for_each([](tuple<string, int> value) {
-    return get<0>(value) == "Pepe";
-  });
-
-  cout << get<0>(pepe->value) << " : " << get<1>(pepe->value) << '\n';
-   */
   return 0;
 }
